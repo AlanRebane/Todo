@@ -53,26 +53,24 @@ get '/lists/new' do
   erb :new_list, layout: :layout
 end
 
-# Create a new todo item
-post 'lists/:todo_id' do
-end
-
 # Todo page, single list
-get '/lists/:todo_id' do
-  @list = session[:lists][params[:todo_id].to_i]
+get '/lists/:list_id' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
   erb :single_list, layout: :layout
 end
 
 # Render the edit an existing todo list form
-get '/lists/:todo_id/edit' do
-  @list = session[:lists][params[:todo_id].to_i]
+get '/lists/:list_id/edit' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
   erb :edit_list, layout: :layout
 end
 
 # Edit an existing todo list name
-post '/lists/:todo_id' do
-  todo_id = params[:todo_id].to_i
-  @list = session[:lists][todo_id]
+post '/lists/:list_id' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
   list_name = params[:list_name].strip
 
   error = error_for_list_name(list_name)
@@ -82,14 +80,66 @@ post '/lists/:todo_id' do
   else
     @list[:name] = list_name
     session[:success] = 'The list name has been modified.'
-    redirect "/lists/#{todo_id}"
+    redirect "/lists/#{@list_id}"
   end
 end
 
-# Delete an existing todo
-post "/lists/:todo_id/destroy" do
-  todo_id = params[:todo_id].to_i
-  session[:lists].delete_at(todo_id)
+# Delete an existing todo list
+post '/lists/:list_id/destroy' do
+  list_id = params[:list_id].to_i
+  session[:lists].delete_at(list_id)
   session[:success] = 'The list name has been deleted.'
   redirect "/lists"
+end
+
+# Add todo items
+post '/lists/:list_id/todos' do
+  @list_id = params[:list_id].to_i
+  todo = params[:todo].strip
+  @list = session[:lists][@list_id]
+
+  if !(1..100).cover? todo.size
+    session[:error] = 'Todo must be between 1 and 100 characters.'
+    erb :single_list, layout: :layout
+  else
+    @list[:todos] << {name: todo, completed: false}
+    session[:success] = 'The todo item has been created.'
+    redirect "/lists/#{@list_id}"
+  end
+end
+
+# Delete an existing todo item within a todo list
+post '/lists/:list_id/todos/:todo_id/destroy' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
+  todo_id = params[:todo_id].to_i
+  todo_name = @list[:todos].delete_at(todo_id)
+  session[:success] = "The todo item '#{todo_name[:name]}' has been deleted."
+  redirect "/lists/#{@list_id}"
+end
+
+# Mark a todo item as done/undone
+post '/lists/:list_id/todos/:todo_id' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
+
+  todo_id = params[:todo_id].to_i
+  is_completed = params[:completed] == "true"
+  @list[:todos][todo_id][:completed] = is_completed
+
+  session[:success] = "The todo has been updated."
+  redirect "/lists/#{@list_id}"
+end
+
+
+
+# Mark all todo items as done
+post '/lists/:list_id/complete_all' do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
+
+  @list[:todos].each { |todo| todo[:completed] = true }
+
+  session[:success] = "All todos have been marked as done."
+  redirect "/lists/#{@list_id}"
 end
