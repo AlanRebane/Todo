@@ -1,4 +1,8 @@
-<section id="todos">
+<% if all_todos_completed?(@list) %>
+  <section id="todos" class="complete">
+<% else %>
+  <section id="todos">
+<% end %>
   <header>
     <h2><%= @list[:name] %></h2>
     <ul>
@@ -15,7 +19,7 @@
   </header>
 
   <ul id="todos">
-    <% @list[:todos].each_with_index do |todo_item, todo_id| %>
+    <% sort_todos(@list[:todos]) do |todo_item, todo_id| %>
       <% if todo_item[:completed] %>
         <li class="complete">
       <% else %>

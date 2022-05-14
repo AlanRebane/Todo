@@ -14,6 +14,40 @@ before do
   session[:lists] ||= []
 end
 
+# Data structures
+# session[:lists] << { name: list_name, todos: [] }
+# session[:lists][:todos] << {name: todo, completed: false}
+helpers do
+  def count_incomplete_todos(list)
+    count = 0
+    list[:todos].each { |todo| count += 1 if todo[:completed] == false }
+    count
+  end
+
+  def count_all_todos(list)
+    list[:todos].size
+  end
+
+  def all_todos_completed?(list)
+    count_incomplete_todos(list) == 0 && count_all_todos(list) > 0
+  end
+
+  def sort_lists(lists, &block)
+    complete_lists, incomplete_lists = lists.partition { |list|  all_todos_completed?(list) }
+
+    incomplete_lists.each { |list| yield list, lists.index(list) }
+    complete_lists.each { |list| yield list, lists.index(list) }
+  end
+
+  def sort_todos(todos, &block)
+    complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
+
+    incomplete_todos.each { |todo| yield todo, todos.index(todo) }
+    complete_todos.each { |todo| yield todo, todos.index(todo) }
+  end
+
+end
+
 get '/' do
   redirect '/lists'
 end
@@ -130,8 +164,6 @@ post '/lists/:list_id/todos/:todo_id' do
   session[:success] = "The todo has been updated."
   redirect "/lists/#{@list_id}"
 end
-
-
 
 # Mark all todo items as done
 post '/lists/:list_id/complete_all' do
