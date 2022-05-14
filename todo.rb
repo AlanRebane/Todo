@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'sinatra'
-require 'sinatra/reloader'
+require 'sinatra/reloader' if development?
 require 'tilt/erubis'
 require "sinatra/content_for"
 
@@ -46,6 +46,10 @@ helpers do
     complete_todos.each { |todo| yield todo, todos.index(todo) }
   end
 
+end
+
+not_found do
+  redirect '/'
 end
 
 get '/' do
