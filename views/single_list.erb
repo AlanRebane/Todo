@@ -13,25 +13,25 @@
       </li>
       </li>
       <li>
-        <a class="edit" href="/lists/<%= @list_id %>/edit">Edit todo</a>
+        <a class="edit" href="/lists/<%= @list_id %>/edit">Edit list</a>
       </li>
     </ul>
   </header>
 
   <ul id="todos">
-    <% sort_todos(@list[:todos]) do |todo_item, todo_id| %>
+    <% sort_todos(@list[:todos]) do |todo_item| %>
       <% if todo_item[:completed] %>
         <li class="complete">
       <% else %>
         <li>
       <% end %>
-        <form action="/lists/<%= @list_id %>/todos/<%= todo_id %>" method="post" class="check">
+        <form action="/lists/<%= @list_id %>/todos/<%= todo_item[:id] %>" method="post" class="check">
           <input type="hidden" name="completed" value="<%= !todo_item[:completed] %>" />
           <button type="submit">Complete</button>
         </form>
 
         <h3><%= todo_item[:name] %></h3>
-        <form action="/lists/<%= @list_id %>/todos/<%= todo_id %>/destroy" method="post" class="delete">
+        <form action="/lists/<%= @list_id %>/todos/<%= todo_item[:id] %>/destroy" method="post" class="delete">
           <button type="submit">Delete</button>
         </form>
       </li>
