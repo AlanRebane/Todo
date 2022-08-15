@@ -211,3 +211,7 @@ post '/lists/:list_id/complete_all' do
   session[:success] = "All todos have been marked as done."
   redirect "/lists/#{@list_id}"
 end
+
+after do
+  @storage.disconnect
+end
